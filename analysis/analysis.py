@@ -11,9 +11,10 @@ from containers import *
 
 
 def init():
-    if len(sys.argv) in (4,5):
-        snapshots, focuses, navs = loadEverything(*sys.argv[1:4])
-        if len(sys.argv) == 5:
+    print >> sys.stderr, sys.argv[1]
+    if len(sys.argv) in (2,3):
+        snapshots, focuses, navs = loadEverything(sys.argv[1])
+        if len(sys.argv) == 3:
             print >> sys.stderr, 'Writing snapshot to file...',
             fp = open(sys.argv[4], 'wb')
             pickle.dump(snapshots, fp, -1)
@@ -109,7 +110,7 @@ def main():
     active, tab, maxCount, tabHisto, domainHisto, directBr, indirectBr, maxWinCount, windowHisto = tabHours(snapshots)
     searchCount = searches(snapshots)
 
-    print 'Log duration:\t\t', total
+    print 'Log duration:\t\t', total, snapshots[-1].endTime, snapshots[0].time
     print 'Active duration:\t', active
     print 'Active ratio:\t\t%.2f%%' % (100 * active.total_seconds() / total.total_seconds())
     print 'Tab duration:\t\t', tab
