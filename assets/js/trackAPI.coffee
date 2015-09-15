@@ -5,7 +5,7 @@
 ###
 root = exports ? this
 #TABSERVER = "https://report-tabs.cmusocial.com" #TODO set me to the right URL
-TABSERVER = "http://localhost:8080"
+TABSERVER = "http://127.0.0.1:8080"
 
 persistToFile = (filename, csv) ->
   onInitFs = (fs) ->

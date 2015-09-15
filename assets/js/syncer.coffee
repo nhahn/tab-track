@@ -22,7 +22,7 @@ self.onmessage = (msg) ->
 
 performSync = (token, stopPoints, external) ->
   unless external
-    socket = io('http://localhost:8080/sync', {
+    socket = io('http://127.0.0.1:8080/sync', {
     #socket = io('wss://report-tabs.cmusocial.com:8443/sync', {
       transports: ['websocket']
       'query': 'token=' + token
@@ -38,7 +38,8 @@ performSync = (token, stopPoints, external) ->
       socket.emit(dest, message)
 
   #Do we need these?
-  socket.on 'reconnect_failed', (err) -> reportErr({message: "Socket.io reconnect failure"})
+  if !external
+    socket.on 'reconnect_failed', (err) -> reportErr({message: "Socket.io reconnect failure"})
 
   tables = ['TabInfo', 'FocusInfo', 'NavInfo']
   queries = []
