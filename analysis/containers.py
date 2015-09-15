@@ -36,6 +36,28 @@ class Tab:
         if self.query != None:
             self.query = self.query.split(' ')
 
+    def toDictionary(self):
+        tab = {}
+        tab['snapshotId']  = self.snapshotId
+        tab['windowId']    = self.windowId
+        tab['tabId']       = self.id
+        tab['openerTabId'] = self.openerTabId
+        tab['index']       = self.index
+        tab['status']      = self.status
+        tab['action']      = self.snapshotAction
+        tab['domainHash']  = self.domain
+        tab['urlHash']     = self.url
+        tab['domainHash']  = self.domainHash
+        tab['urlHash']     = self.urlHash
+        tab['favIconUrl']  = self.favIconUrl
+        tab['time']        = self.time
+        tab['query']       = self.query
+        if hasattr(self, 'targets'):
+            tab['targets'] = [target.toDictionary() for target in self.targets]
+        if hasattr(self, 'init'):
+            tab['init'] = self.init
+        return tab
+
     def directSource(self):
         if hasattr(self, 'source') and self.source != None:
             return self.source
@@ -140,8 +162,6 @@ class Snapshot:
             for focus in self.focuses:
                 assert(self.hasTab(focus.id))
 
-
-
     def duration(self):
         if not self.endTime:
             return None
@@ -169,4 +189,76 @@ class Snapshot:
             '\n  '.join(map(str, self.tabs)),
             focusstr
         )).encode('utf8')
+
+class TabSession:
+    def __init__(self, tab, focuses, endTime, threshold = 1.0):
+        self.tab = tab
+        self.focuses = focuses
+        self.time = tab.time
+        self.endTime = endTime
+        self.threshold = threshold
+
+        self.duration = self.__duration__()
+        self.readings = self.__readings__()
+        self.backgrounds = self.__backgrounds__()
+        self.obsoleteDuration = self.__obsoleteDuration__()
+        self.queueDuration = self.__queueDuration__()
+        self.readingDuration = self.__readingDuration__()
+        self.backgroundDuration = self.__backgroundDuration__()
+
+    def revisitation(self):
+        return len(self.backgrounds)
+
+    def __duration__(self):
+        return (self.endTime - self.time)
+
+    def __readings__(self):
+        readings = []
+        for idx in range(len(self.focuses)):
+            focus = self.focuses[idx]
+            if focus.id != self.tab.id:
+                continue
+
+            if idx == len(self.focuses) - 1:
+                endTime = self.endTime
+            else:
+                endTime = self.focuses[idx + 1].time
+            if (endTime - focus.time).total_seconds <= self.threshold:
+                continue
+
+            if len(readings) > 0 and (focus.time - readings[-1][-1]).total_seconds <= self.threshold:
+                readings[-1][-1] = endTime
+            else:
+                readings.append((focus.time, endTime))
+        return readings
+
+    def __readingDuration__(self):
+        duration = datetime.timedelta(0)
+        for r in self.readings:
+            duration += (r[-1] - r[0])
+        return duration
+
+    def __backgroundDuration__(self):
+        duration = datetime.timedelta(0)
+        for r in self.backgrounds:
+            duration += (r[-1] - r[0])
+        return duration
+
+    def __backgrounds__(self):
+        if len(self.readings) <= 1:
+            return []
+        backgrounds = []
+        for fr, to in zip(self.readings[:-1], self.readings[1:]):
+            backgrounds.append((fr[-1], to[0]))
+        return backgrounds
+
+    def __obsoleteDuration__(self):
+        if len(self.readings) == 0:
+            return self.duration
+        return (self.endTime - self.readings[-1][-1])
+
+    def __queueDuration__(self):
+        if len(self.readings) == 0:
+            return datetime.timedelta(0)
+        return (self.readings[0][0] - self.time)
 
