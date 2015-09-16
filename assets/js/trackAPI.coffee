@@ -154,8 +154,9 @@ root.AppSettings = (() ->
     'setting-nextSync': Date.now()
     'setting-syncProgress': {}
     'setting-logLevel': {value: 4, name: 'WARN'}
+    'setting-history': false
   #Global settings
-  settings = ['userID', 'userSecret', 'trackURL', 'trackDomain', 'logLevel', 'autoSync', 'syncInterval', 'lastSync', 'nextSync', 'syncProgress', 'retryInterval', 'encryptionKey']
+  settings = ['userID', 'userSecret', 'trackURL', 'trackDomain', 'logLevel', 'autoSync', 'syncInterval', 'lastSync', 'nextSync', 'syncProgress', 'retryInterval', 'encryptionKey', 'history']
   handlers = {}
   expandedSettings = _.map settings, (itm) -> 'setting-'+itm
   ready = false #Let us know if we are ready yet -- if we already are, go ahead and call any new ready handlers

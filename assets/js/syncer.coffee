@@ -38,7 +38,8 @@ performSync = (token, stopPoints, external) ->
       socket.emit(dest, message)
 
   #Do we need these?
-  socket.on 'reconnect_failed', (err) -> reportErr({message: "Socket.io reconnect failure"})
+  if !external
+    socket.on 'reconnect_failed', (err) -> reportErr({message: "Socket.io reconnect failure"})
 
   tables = ['TabInfo', 'FocusInfo', 'NavInfo']
   queries = []

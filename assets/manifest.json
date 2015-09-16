@@ -11,13 +11,14 @@
     "unlimitedStorage",
     "webNavigation",
     "chrome://favicon/",
-    "*://report-tabs.cmusocial.com/*"
+    "*://report-tabs.cmusocial.com/*",
+    "history"
   ],
   "optional_permissions": [
     "alarms"
   ],
   "externally_connectable": {
-    "matches": ["*://report-tabs.cmusocial.com/*", "*://localhost/*"]
+    "matches": ["*://report-tabs.cmusocial.com/*", "*://localhost/*", "*://127.0.0.1/*"]
   },
   "background": {
     "page": "html/background.html",

@@ -17,6 +17,10 @@ chrome.runtime.onMessageExternal.addListener (request, sender, sendResponse) ->
         sendResponse({cmd: 'newClient', secret: AppSettings.userSecret})
     when "saveID" then AppSettings.userID = request.user
     when "detect" then sendResponse({autoSync: AppSettings.autoSync})
+    when 'history' 
+      chrome.history.search {text: request.url}, (items) ->
+        sendResponse({cmd: 'found', item: items[0]})
+      return true
 
 syncConnection = (port) ->
   worker = new Worker('/js/syncer.js')
@@ -55,17 +59,30 @@ syncConnection = (port) ->
   port.onDisconnect.addListener () ->
     worker.terminate()
 
+hex2a = (hex) ->
+  str = ''
+  i = 0
+  while i < hex.length
+    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16))
+    i += 2
+  return str
 
 decryptionConnection = (port) ->
   port.onMessage.addListener (msg) ->
     item = msg.payload
     err = null
+    fields = []
     for field in msg.fields
       try
-        item[field] = CryptoJS.AES.decrypt(item[field], AppSettings.encryptionKey).toString()
+        if item[field] and item[field] instanceof Array
+          for k,idx in item[field]
+            item[field][idx] = hex2a(CryptoJS.AES.decrypt(k, AppSettings.encryptionKey).toString())
+        else if item[field]
+          item[field] = hex2a(CryptoJS.AES.decrypt(item[field], AppSettings.encryptionKey).toString())
+        fields.push(field)
       catch err
         err = err
     if err
-      port.postMessage({cmd: 'decryptionError', partial: item, err: err})
+      port.postMessage({cmd: 'decryptionError', decrypted: item, err: err, fields: fields})
     else
-      port.postMessage({cmd: 'decrypted', decrypted: item})
+      port.postMessage({cmd: 'decrypted', decrypted: item, fields: fields})
