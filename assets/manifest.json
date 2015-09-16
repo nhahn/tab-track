@@ -10,7 +10,8 @@
     "storage",
     "unlimitedStorage",
     "webNavigation",
-    "chrome://favicon/"
+    "chrome://favicon/",
+    "history"
   ],
   "optional_permissions": [
     "*://report-tabs.cmusocial.com/*",
